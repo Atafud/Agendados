@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'model.dart';
 import 'screens.dart';
 import 'theme.dart';
 
-void main() => runApp(AgendadosApp(model: AgendaModel()));
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // En Flutter web el árbol semántico está apagado hasta que el usuario pulsa
+  // «Enable accessibility». Lo activamos desde el inicio para lectores de pantalla.
+  SemanticsBinding.instance.ensureSemantics();
+  runApp(AgendadosApp(model: AgendaModel()));
+}
 
 class AgendadosApp extends StatelessWidget {
   const AgendadosApp({super.key, required this.model});
