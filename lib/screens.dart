@@ -132,15 +132,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 width: 40, height: 40, // 40 visibles dentro de 48 táctiles (8 px de separación visual)
                 decoration: BoxDecoration(
                   color: sel ? AppColors.primary : Colors.white,
-                  border: Border.all(color: sel ? AppColors.text : AppColors.primary.withValues(alpha: 0.0), width: 2),
+                  border: Border.all(color: sel ? AppColors.text : AppColors.primary, width: sel ? 3 : 1.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Stack(alignment: Alignment.center, children: [
+                child: Stack(alignment: Alignment.center, clipBehavior: Clip.none, children: [
                   Text('$d', style: TextStyle(fontSize: 16, fontWeight: acts.isEmpty ? FontWeight.w400 : FontWeight.w800,
                       color: sel ? Colors.white : AppColors.text)),
-                  if (acts.isNotEmpty) Positioned(bottom: 3, child: Container(width: 16, height: 3, color: sel ? Colors.white : AppColors.primary)),
-                  if (urgent) Positioned(top: 0, right: 2, child: Text('!', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900,
-                      color: sel ? Colors.white : AppColors.urgent))),
+                  if (acts.isNotEmpty) Positioned(bottom: 4, child: Container(width: 18, height: 3, color: sel ? Colors.white : AppColors.primary)),
+                  // Insignia de urgente: cuadrito rojo con "!" blanco grande, borde blanco para destacar sobre cualquier fondo.
+                  if (urgent) Positioned(top: -8, right: -8, child: Container(
+                    width: 20, height: 20, alignment: Alignment.center,
+                    decoration: BoxDecoration(color: AppColors.urgent, borderRadius: BorderRadius.circular(5),
+                        border: Border.all(color: Colors.white, width: 2)),
+                    child: const Text('!', style: TextStyle(fontSize: 14, height: 1, fontWeight: FontWeight.w900, color: Colors.white)),
+                  )),
                 ]),
               ),
             ),
@@ -174,7 +179,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ExcludeSemantics(child: Row(children: [for (final w in wd) Expanded(child: Center(child: Text(w, style: Theme.of(context).textTheme.labelSmall)))])),
           ...rows,
           const SizedBox(height: 8),
-          Text('Subrayado: tiene actividades · "!": hay una urgente', style: Theme.of(context).textTheme.labelSmall),
+          Text('Subrayado: tiene actividades · cuadro rojo con "!": hay una urgente', style: Theme.of(context).textTheme.labelSmall),
           const SizedBox(height: 12),
           Semantics(
             liveRegion: true,
