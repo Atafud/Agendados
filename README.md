@@ -4,7 +4,7 @@ Agenda + tareas + recordatorios accesibles. Datos locales/simulados (sin backend
 
     flutter pub get
     flutter analyze
-    flutter test          # tamaño táctil, etiquetas, contraste, 200 % de texto, R1-R3
+    flutter test
     flutter run
 
 Estructura: `lib/theme.dart` (paleta medida), `model.dart` (estado), `widgets.dart` (componentes
