@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'model.dart';
 import 'theme.dart';
 import 'widgets.dart';
+
+void _toggleActivityDone(AgendaModel model, Activity activity) {
+  model.toggleDone(activity);
+  if (activity.done) {
+    HapticFeedback.lightImpact();
+  }
+}
 
 /// Contenedor con navegación inferior estándar: Hoy / Avisos pendientes.
 class HomeShell extends StatefulWidget {
@@ -84,7 +92,7 @@ class AgendaScreen extends StatelessWidget {
           for (final a in list)
             ActivityCard(
               a: a,
-              onToggle: () => model.toggleDone(a),
+              onToggle: () => _toggleActivityDone(model, a),
               onOpen: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailScreen(model: model, a: a))),
             ),
         ]);
@@ -270,6 +278,7 @@ class _EditScreenState extends State<EditScreen> {
       a = m.add(title, _date, t.h, t.m, reminderMinutes: _reminder, urgent: _urgent);
       m.selectDay(_date);
     }
+    HapticFeedback.lightImpact();
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Guardada: ${a.title}, ${fechaLarga(a.date)}, ${a.timeText}. ${a.reminderText}.'),
@@ -417,6 +426,7 @@ class DetailScreen extends StatelessWidget {
     );
     if (ok != true || !context.mounted) return;
     model.remove(a);
+    HapticFeedback.mediumImpact();
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
     messenger.showSnackBar(SnackBar(
@@ -450,7 +460,7 @@ class DetailScreen extends StatelessWidget {
               )),
               const SizedBox(height: 16),
               FilledButton.icon(
-                onPressed: () => model.toggleDone(a),
+                onPressed: () => _toggleActivityDone(model, a),
                 icon: Icon(a.done ? Icons.undo : Icons.check),
                 label: Text(a.done ? 'Volver a dejar pendiente' : 'Marcar como hecha'),
               ),
@@ -510,7 +520,7 @@ class PendingScreen extends StatelessWidget {
                     const SizedBox(height: kGap),
                     Wrap(spacing: kGap, runSpacing: kGap, children: [
                       FilledButton(
-                        onPressed: () { model.toggleDone(a); },
+                        onPressed: () => _toggleActivityDone(model, a),
                         child: Text('Hecha: ${a.title}', maxLines: 2),
                       ),
                       OutlinedButton(onPressed: () => model.snooze(a, 10), child: Text('Posponer 10 minutos: ${a.title}', maxLines: 2)),
