@@ -57,6 +57,42 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('No tienes avisos pendientes.'), findsOneWidget);
   });
+
+  testWidgets('R4: cancelar conserva la actividad; eliminar y deshacer la restauran', (t) async {
+    final semantics = t.ensureSemantics();
+    final model = AgendaModel(now: DateTime(2026, 11, 17));
+    final activity = model.items.firstWhere((a) => a.title == 'Comprar cuaderno');
+    await t.pumpWidget(AgendadosApp(model: model));
+
+    await t.tap(find.text('Comprar cuaderno'));
+    await t.pumpAndSettle();
+    await t.tap(find.widgetWithText(OutlinedButton, 'Eliminar'));
+    await t.pumpAndSettle();
+
+    final cancelButton = find.widgetWithText(TextButton, 'Cancelar');
+    expect(cancelButton, findsOneWidget);
+    final focusedButton = FocusManager.instance.primaryFocus?.context
+        ?.findAncestorWidgetOfExactType<TextButton>();
+    expect(focusedButton?.autofocus, isTrue);
+    expect(t.getSemantics(cancelButton).getSemanticsData().hasFlag(SemanticsFlag.isFocused), isTrue);
+    await t.tap(cancelButton);
+    await t.pumpAndSettle();
+    expect(model.items, contains(activity));
+
+    await t.tap(find.widgetWithText(OutlinedButton, 'Eliminar'));
+    await t.pumpAndSettle();
+    await t.tap(find.widgetWithText(TextButton, 'Eliminar'));
+    await t.pumpAndSettle();
+    expect(model.items, isNot(contains(activity)));
+    expect(find.textContaining('Eliminada: Comprar cuaderno'), findsOneWidget);
+    expect(find.widgetWithText(SnackBarAction, 'Deshacer'), findsOneWidget);
+
+    await t.tap(find.widgetWithText(SnackBarAction, 'Deshacer'));
+    await t.pumpAndSettle();
+    expect(model.items, contains(activity));
+    expect(model.items.firstWhere((a) => a.id == activity.id), same(activity));
+    semantics.dispose();
+  });
 }
 
 Object? tester(WidgetTester t) => t.takeException();
