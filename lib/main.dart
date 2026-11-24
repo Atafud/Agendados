@@ -17,10 +17,17 @@ class AgendadosApp extends StatelessWidget {
   const AgendadosApp({super.key, required this.model});
   final AgendaModel model;
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeMode,
+      builder: (context, mode, _) => MaterialApp(
         title: 'Agendados',
         debugShowCheckedModeBanner: false,
-        theme: buildTheme(),
+        themeMode: mode,
+        // El sistema elige: claro/oscuro y, si el usuario activó alto contraste, su variante.
+        theme: buildTheme(AppColors.light),
+        darkTheme: buildTheme(AppColors.dark, brightness: Brightness.dark),
+        highContrastTheme: buildTheme(AppColors.highContrastLight),
+        highContrastDarkTheme: buildTheme(AppColors.highContrastDark, brightness: Brightness.dark),
         locale: const Locale('es'),
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
@@ -30,5 +37,5 @@ class AgendadosApp extends StatelessWidget {
         supportedLocales: const [Locale('es'), Locale('en')],
         home: HomeShell(model: model),
         // NO se fija textScaler: se respeta el tamaño de fuente del sistema.
-      );
+      ));
 }

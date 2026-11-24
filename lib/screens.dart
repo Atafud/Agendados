@@ -54,7 +54,10 @@ class AgendaScreen extends StatelessWidget {
         final list = model.forDay(day);
         final isToday = mismoDia(day, model.today);
         return ListView(padding: const EdgeInsets.all(16), children: [
-          const ScreenTitle('Agenda'),
+          Row(children: [
+            const Expanded(child: ScreenTitle('Agenda')),
+            const _ThemeButton(),
+          ]),
           const SizedBox(height: 12),
           Row(children: [
             Expanded(child: OutlinedButton.icon(onPressed: () => model.shiftDay(-1),
@@ -93,6 +96,20 @@ class AgendaScreen extends StatelessWidget {
   }
 }
 
+/// Alterna claro/oscuro. El nombre dice la acción (a qué tema cambia), no el estado.
+class _ThemeButton extends StatelessWidget {
+  const _ThemeButton();
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return IconButton(
+      tooltip: dark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro',
+      icon: Icon(dark ? Icons.light_mode : Icons.dark_mode),
+      onPressed: () => themeMode.value = dark ? ThemeMode.light : ThemeMode.dark,
+    );
+  }
+}
+
 // ───────────────────────── P02 Calendario (R2) ─────────────────────────
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key, required this.model});
@@ -108,6 +125,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final m = widget.model;
+    final col = AppColors.of(context);
     final first = month;
     final offset = first.weekday - 1;
     final days = DateTime(month.year, month.month + 1, 0).day;
@@ -131,20 +149,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
               child: Container(
                 width: 40, height: 40, // 40 visibles dentro de 48 táctiles (8 px de separación visual)
                 decoration: BoxDecoration(
-                  color: sel ? AppColors.primary : Colors.white,
-                  border: Border.all(color: sel ? AppColors.text : AppColors.primary, width: sel ? 3 : 1.5),
+                  color: sel ? col.primary : col.surface,
+                  border: Border.all(color: sel ? col.text : col.primary, width: sel ? 3 : 1.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Stack(alignment: Alignment.center, clipBehavior: Clip.none, children: [
                   Text('$d', style: TextStyle(fontSize: 16, fontWeight: acts.isEmpty ? FontWeight.w400 : FontWeight.w800,
-                      color: sel ? Colors.white : AppColors.text)),
-                  if (acts.isNotEmpty) Positioned(bottom: 4, child: Container(width: 18, height: 3, color: sel ? Colors.white : AppColors.primary)),
+                      color: sel ? col.onPrimary : col.text)),
+                  if (acts.isNotEmpty) Positioned(bottom: 4, child: Container(width: 18, height: 3, color: sel ? col.onPrimary : col.primary)),
                   // Insignia de urgente: cuadrito rojo con "!" blanco grande, borde blanco para destacar sobre cualquier fondo.
                   if (urgent) Positioned(top: -8, right: -8, child: Container(
                     width: 20, height: 20, alignment: Alignment.center,
-                    decoration: BoxDecoration(color: AppColors.urgent, borderRadius: BorderRadius.circular(5),
-                        border: Border.all(color: Colors.white, width: 2)),
-                    child: const Text('!', style: TextStyle(fontSize: 14, height: 1, fontWeight: FontWeight.w900, color: Colors.white)),
+                    decoration: BoxDecoration(color: col.urgent, borderRadius: BorderRadius.circular(5),
+                        border: Border.all(color: col.surface, width: 2)),
+                    child: Text('!', style: TextStyle(fontSize: 14, height: 1, fontWeight: FontWeight.w900, color: col.surface)),
                   )),
                 ]),
               ),
@@ -185,7 +203,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             liveRegion: true,
             child: Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(border: Border.all(color: AppColors.primary, width: 2), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(border: Border.all(color: col.primary, width: 2), borderRadius: BorderRadius.circular(12)),
               child: Text('${fechaLarga(picked)}\n${dayActs.length} ${dayActs.length == 1 ? 'actividad' : 'actividades'}'
                   '${dayActs.any((a) => a.urgent) ? ' · 1 urgente' : ''}', style: Theme.of(context).textTheme.bodyLarge),
             ),
@@ -323,7 +341,7 @@ class _EditScreenState extends State<EditScreen> {
             CheckboxListTile(
               contentPadding: EdgeInsets.zero, value: _urgent, onChanged: (v) => setState(() => _urgent = v ?? false),
               title: const Text('Marcar como urgente'), controlAffinity: ListTileControlAffinity.leading,
-              side: const BorderSide(color: AppColors.primary, width: 2),
+              side: BorderSide(color: AppColors.of(context).primary, width: 2),
             ),
             const SizedBox(height: 16),
             FilledButton(onPressed: _save, child: const Text('Guardar actividad')),
@@ -341,27 +359,30 @@ class _FieldRow extends StatelessWidget {
   const _FieldRow({required this.icon, required this.name, required this.value, required this.onTap});
   final IconData icon; final String name; final String value; final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => Semantics(
-        button: true, label: '$name: $value. Cambiar', excludeSemantics: true, onTap: onTap,
-        child: InkWell(
-          onTap: onTap, borderRadius: BorderRadius.circular(12),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: kMinTarget + 8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(border: Border.all(color: AppColors.primary, width: 2), borderRadius: BorderRadius.circular(12)),
-              child: Row(children: [
-                Icon(icon, color: AppColors.primary), const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(name, style: Theme.of(context).textTheme.labelSmall),
-                  Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                ])),
-                const Icon(Icons.chevron_right, color: AppColors.primary),
-              ]),
-            ),
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Semantics(
+      button: true, label: '$name: $value. Cambiar', excludeSemantics: true, onTap: onTap,
+      child: InkWell(
+        onTap: onTap, borderRadius: BorderRadius.circular(12),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: kMinTarget + 8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(border: Border.all(color: c.primary, width: 2), borderRadius: BorderRadius.circular(12)),
+            child: Row(children: [
+              Icon(icon, color: c.primary), const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(name, style: Theme.of(context).textTheme.labelSmall),
+                Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              ])),
+              Icon(Icons.chevron_right, color: c.primary),
+            ]),
           ),
         ),
-      );
+      ),
+    );
+  }
 }
 
 // ───────────────────────── P04 Configurar recordatorio (R1) ─────────────────────────
@@ -416,7 +437,7 @@ class DetailScreen extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
           TextButton(onPressed: () => Navigator.pop(ctx, true),
-              style: TextButton.styleFrom(foregroundColor: AppColors.error), child: const Text('Eliminar')),
+              style: TextButton.styleFrom(foregroundColor: AppColors.of(ctx).error), child: const Text('Eliminar')),
         ],
       ),
     );
@@ -442,7 +463,7 @@ class DetailScreen extends StatelessWidget {
               // Un único bloque de lectura con todos los datos.
               MergeSemantics(child: Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(border: Border.all(color: AppColors.primary, width: 2), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(border: Border.all(color: AppColors.of(context).primary, width: 2), borderRadius: BorderRadius.circular(12)),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('${fechaLarga(a.date)}, ${a.timeText}', style: Theme.of(context).textTheme.bodyLarge),
                   Text('Aviso: ${a.reminderText}', style: Theme.of(context).textTheme.bodyMedium),
@@ -478,7 +499,7 @@ class DetailScreen extends StatelessWidget {
               const SizedBox(height: 16), // separación mayor antes de la acción destructiva
               OutlinedButton.icon(
                 onPressed: () => _delete(context),
-                style: OutlinedButton.styleFrom(foregroundColor: AppColors.error, side: const BorderSide(color: AppColors.error, width: 2)),
+                style: OutlinedButton.styleFrom(foregroundColor: AppColors.of(context).error, side: BorderSide(color: AppColors.of(context).error, width: 2)),
                 icon: const Icon(Icons.delete_outline), label: const Text('Eliminar'),
               ),
             ]),
@@ -504,7 +525,7 @@ class PendingScreen extends StatelessWidget {
             for (final a in list)
               Card(
                 margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(side: const BorderSide(color: AppColors.primary, width: 2), borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(side: BorderSide(color: AppColors.of(context).primary, width: 2), borderRadius: BorderRadius.circular(12)),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
