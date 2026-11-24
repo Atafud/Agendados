@@ -414,7 +414,7 @@ class DetailScreen extends StatelessWidget {
         title: Text('¿Eliminar «${a.title}»?'),
         content: const Text('La actividad desaparecerá de tu agenda. Podrás deshacerlo justo después.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          TextButton(autofocus: true, onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
           TextButton(onPressed: () => Navigator.pop(ctx, true),
               style: TextButton.styleFrom(foregroundColor: AppColors.error), child: const Text('Eliminar')),
         ],
@@ -425,8 +425,9 @@ class DetailScreen extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
     messenger.showSnackBar(SnackBar(
-      content: Text('Eliminada: ${a.title}'), duration: const Duration(seconds: 8),
-      action: SnackBarAction(label: 'Deshacer', onPressed: model.undoRemove),
+      content: Text('Eliminada: ${a.title}. Puedes deshacer la eliminación.'),
+      duration: const Duration(seconds: 15),
+      action: SnackBarAction(label: 'Deshacer', onPressed: () => model.undoRemove(a)),
     ));
   }
 

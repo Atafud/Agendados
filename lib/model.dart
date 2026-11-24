@@ -43,7 +43,6 @@ class AgendaModel extends ChangeNotifier {
   final DateTime today;
   late DateTime selected;
   final List<Activity> items = [];
-  Activity? _deleted;
   int _next = 1;
 
   void _seed() {
@@ -69,11 +68,15 @@ class AgendaModel extends ChangeNotifier {
   void toggleDone(Activity a) { a.done = !a.done; if (a.done) a.acknowledged = true; notifyListeners(); }
   void update() => notifyListeners();
 
-  void remove(Activity a) { items.remove(a); _deleted = a; notifyListeners(); }
-  bool undoRemove() {
-    final a = _deleted;
-    if (a == null) return false;
-    items.add(a); _deleted = null; notifyListeners(); return true;
+  void remove(Activity a) {
+    if (items.remove(a)) notifyListeners();
+  }
+
+  bool undoRemove(Activity a) {
+    if (items.contains(a)) return false;
+    items.add(a);
+    notifyListeners();
+    return true;
   }
 
   /// Avisos recibidos y todavía sin gestionar (R3). Simulado: todo aviso con
