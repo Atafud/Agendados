@@ -22,6 +22,7 @@ class Choice extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Semantics(
       button: true,
       selected: selected,
@@ -37,13 +38,13 @@ class Choice extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: selected ? AppColors.selectedBg : Colors.white,
-              border: Border.all(color: AppColors.primary, width: selected ? 3 : 2),
+              color: selected ? c.selectedBg : c.surface,
+              border: Border.all(color: c.primary, width: selected ? 3 : 2),
               borderRadius: BorderRadius.circular(24),
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              if (selected) ...[const Icon(Icons.check, size: 20, color: AppColors.text), const SizedBox(width: 4)],
-              Flexible(child: Text(label, style: TextStyle(fontSize: 16, color: AppColors.text,
+              if (selected) ...[Icon(Icons.check, size: 20, color: c.text), const SizedBox(width: 4)],
+              Flexible(child: Text(label, style: TextStyle(fontSize: 16, color: c.text,
                   fontWeight: selected ? FontWeight.w800 : FontWeight.w500))),
             ]),
           ),
@@ -59,11 +60,12 @@ class StatusBadge extends StatelessWidget {
   final String kind; // Hecha | Pendiente | Urgente
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     late IconData icon; late Color fg; late Color bg; late Color border;
     switch (kind) {
-      case 'Hecha': icon = Icons.check_circle; fg = AppColors.success; bg = AppColors.successBg; border = AppColors.success;
-      case 'Urgente': icon = Icons.warning_amber_rounded; fg = AppColors.urgent; bg = Colors.white; border = AppColors.urgent;
-      default: icon = Icons.schedule; fg = AppColors.text; bg = AppColors.selectedBg; border = AppColors.primary;
+      case 'Hecha': icon = Icons.check_circle; fg = c.success; bg = c.successBg; border = c.success;
+      case 'Urgente': icon = Icons.warning_amber_rounded; fg = c.urgent; bg = c.surface; border = c.urgent;
+      default: icon = Icons.schedule; fg = c.text; bg = c.selectedBg; border = c.primary;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -82,16 +84,19 @@ class ErrorMessage extends StatelessWidget {
   const ErrorMessage(this.text, {super.key});
   final String text;
   @override
-  Widget build(BuildContext context) => Semantics(
-        liveRegion: true,
-        label: 'Error: $text',
-        excludeSemantics: true,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Icon(Icons.error_outline, size: 20, color: AppColors.error),
-          const SizedBox(width: 6),
-          Expanded(child: Text(text, style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.w700, fontSize: 15))),
-        ]),
-      );
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Semantics(
+      liveRegion: true,
+      label: 'Error: $text',
+      excludeSemantics: true,
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(Icons.error_outline, size: 20, color: c.error),
+        const SizedBox(width: 6),
+        Expanded(child: Text(text, style: TextStyle(color: c.error, fontWeight: FontWeight.w700, fontSize: 15))),
+      ]),
+    );
+  }
 }
 
 /// Fila de actividad (P01). Dos controles separados: la casilla (marcar hecha,
@@ -107,9 +112,10 @@ class ActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
     return Card(
       margin: const EdgeInsets.only(bottom: kGap),
-      shape: RoundedRectangleBorder(side: const BorderSide(color: AppColors.primary, width: 2), borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(side: BorderSide(color: c.primary, width: 2), borderRadius: BorderRadius.circular(12)),
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
         // Widget estándar (Checkbox): aporta rol y estado; solo añadimos el nombre.
         Semantics(
@@ -117,7 +123,7 @@ class ActivityCard extends StatelessWidget {
           child: SizedBox(
             width: kMinTarget + 8, height: kMinTarget + 8,
             child: Checkbox(value: a.done, onChanged: (_) => onToggle(),
-                side: const BorderSide(color: AppColors.primary, width: 2), activeColor: AppColors.success),
+                side: BorderSide(color: c.primary, width: 2), activeColor: c.success),
           ),
         ),
         Expanded(
@@ -144,7 +150,7 @@ class ActivityCard extends StatelessWidget {
             ),
           ),
         ),
-        const ExcludeSemantics(child: Icon(Icons.chevron_right, color: AppColors.primary)),
+        ExcludeSemantics(child: Icon(Icons.chevron_right, color: c.primary)),
         const SizedBox(width: 8),
       ]),
     );
