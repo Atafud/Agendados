@@ -4,11 +4,12 @@ import 'model.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
-void _toggleActivityDone(AgendaModel model, Activity activity) {
+void _toggleActivityDone(BuildContext context, AgendaModel model, Activity activity) {
   model.toggleDone(activity);
   if (activity.done) {
     HapticFeedback.lightImpact();
   }
+  anunciar(context, activity.done ? 'Hecha: ${activity.title}' : 'Pendiente: ${activity.title}');
 }
 
 /// Contenedor con navegación inferior estándar: Hoy / Avisos pendientes.
@@ -95,7 +96,7 @@ class AgendaScreen extends StatelessWidget {
           for (final a in list)
             ActivityCard(
               a: a,
-              onToggle: () => _toggleActivityDone(model, a),
+              onToggle: () => _toggleActivityDone(context, model, a),
               onOpen: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailScreen(model: model, a: a))),
             ),
         ]);
@@ -288,7 +289,11 @@ class _EditScreenState extends State<EditScreen> {
   }
 
   void _save() {
-    if (!_form.currentState!.validate()) return; // los datos escritos se conservan
+    if (!_form.currentState!.validate()) {
+      // Los datos escritos se conservan. Se avisa aunque el error ya estuviera en pantalla.
+      anunciar(context, 'No se guardó. Corrige los campos con error.');
+      return;
+    }
     final t = _time.text.trim().isEmpty ? (h: 9, m: 0) : _parse(_time.text)!;
     final title = _title.text.trim();
     final m = widget.model;
@@ -486,7 +491,7 @@ class DetailScreen extends StatelessWidget {
               )),
               const SizedBox(height: 16),
               FilledButton.icon(
-                onPressed: () => _toggleActivityDone(model, a),
+                onPressed: () => _toggleActivityDone(context, model, a),
                 icon: Icon(a.done ? Icons.undo : Icons.check),
                 label: Text(a.done ? 'Volver a dejar pendiente' : 'Marcar como hecha'),
               ),
@@ -546,10 +551,11 @@ class PendingScreen extends StatelessWidget {
                     const SizedBox(height: kGap),
                     Wrap(spacing: kGap, runSpacing: kGap, children: [
                       FilledButton(
-                        onPressed: () => _toggleActivityDone(model, a),
+                        onPressed: () => _toggleActivityDone(context, model, a),
                         child: Text('Hecha: ${a.title}', maxLines: 2),
                       ),
-                      OutlinedButton(onPressed: () => model.snooze(a, 10), child: Text('Posponer 10 minutos: ${a.title}', maxLines: 2)),
+                      OutlinedButton(onPressed: () { model.snooze(a, 10); anunciar(context, 'Pospuesta 10 minutos: ${a.title}'); },
+                      child: Text('Posponer 10 minutos: ${a.title}', maxLines: 2)),
                       OutlinedButton(
                         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetailScreen(model: model, a: a))),
                         child: const Text('Abrir aviso'),

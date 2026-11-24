@@ -1,6 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'model.dart';
 import 'theme.dart';
+
+/// Avisa al lector de pantalla de un cambio que no mueve el foco.
+/// Android desaconseja los anuncios directos (cortan la voz de TalkBack): ahí usamos
+/// una SnackBar breve, que TalkBack lee como región activa y que ven todos.
+void anunciar(BuildContext context, String mensaje) {
+  if (MediaQuery.supportsAnnounceOf(context)) {
+    SemanticsService.sendAnnouncement(View.of(context), mensaje, Directionality.of(context));
+  } else {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(mensaje), duration: const Duration(seconds: 3)));
+  }
+}
 
 /// Título de pantalla: marcado como encabezado para la navegación por títulos.
 class ScreenTitle extends StatelessWidget {
